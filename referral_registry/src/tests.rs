@@ -6,7 +6,7 @@ use soroban_sdk::{
 };
 
 use leaderboard::LeaderboardContract;
-use pulse_token::PULSETokenContract;
+use stellar_trade_token::StellarTradeTokenContract;
 
 #[allow(dead_code)]
 struct TestSetup {
@@ -14,7 +14,7 @@ struct TestSetup {
     client: ReferralRegistryContractClient<'static>,
     admin: Address,
     market: Address,
-    token_client: pulse_token::PULSETokenContractClient<'static>,
+    token_client: stellar_trade_token::StellarTradeTokenContractClient<'static>,
     leaderboard_client: leaderboard::LeaderboardContractClient<'static>,
     xlm: TokenClient<'static>,
     xlm_admin: StellarAssetClient<'static>,
@@ -45,12 +45,12 @@ fn setup() -> TestSetup {
     let xlm_admin = StellarAssetClient::new(&env, &xlm_sac_id);
     let xlm = TokenClient::new(&env, &xlm_sac_id);
 
-    let token_id = env.register(PULSETokenContract, ());
-    let token_client = pulse_token::PULSETokenContractClient::new(&env, &token_id);
+    let token_id = env.register(StellarTradeTokenContract, ());
+    let token_client = stellar_trade_token::StellarTradeTokenContractClient::new(&env, &token_id);
     token_client.initialize(
         &admin,
-        &String::from_str(&env, "PULSE"),
-        &String::from_str(&env, "PLSE"),
+        &String::from_str(&env, "Stellar Trade"),
+        &String::from_str(&env, "STRD"),
         &7u32,
     );
 
@@ -70,7 +70,11 @@ fn setup() -> TestSetup {
     leaderboard_client.initialize(&admin, &market, &referral_id);
     client.initialize(&admin, &market, &token_id, &leaderboard_id, &xlm_sac_id);
 
-    leaderboard_client.set_token_contract(&admin, &token_id, &pulse_token::INTERFACE_VERSION);
+    leaderboard_client.set_token_contract(
+        &admin,
+        &token_id,
+        &stellar_trade_token::INTERFACE_VERSION,
+    );
     token_client.set_minter(&leaderboard_id);
     token_client.set_minter(&referral_id);
     token_client.set_minter(&market);

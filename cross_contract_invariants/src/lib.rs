@@ -2,7 +2,7 @@
 //!
 //! These tests verify that the combination of constants across all contracts
 //! produces safe behavior. Each test exercises interactions between multiple
-//! contracts (prediction_market, leaderboard, referral_registry, pulse_token).
+//! contracts (prediction_market, leaderboard, referral_registry, stellar_trade_token).
 
 #![no_std]
 #![cfg(test)]
@@ -15,8 +15,8 @@ use soroban_sdk::{
 
 use leaderboard::LeaderboardContract;
 use prediction_market::{Category, PredictionMarketContract};
-use pulse_token::PULSETokenContract;
 use referral_registry::ReferralRegistryContract;
+use stellar_trade_token::StellarTradeTokenContract;
 
 #[allow(dead_code)]
 struct CrossContractSetup {
@@ -24,7 +24,7 @@ struct CrossContractSetup {
     market: prediction_market::PredictionMarketContractClient<'static>,
     leaderboard: leaderboard::LeaderboardContractClient<'static>,
     referral: referral_registry::ReferralRegistryContractClient<'static>,
-    token: pulse_token::PULSETokenContractClient<'static>,
+    token: stellar_trade_token::StellarTradeTokenContractClient<'static>,
     xlm: TokenClient<'static>,
     xlm_admin: StellarAssetClient<'static>,
     admin: Address,
@@ -57,12 +57,12 @@ fn cross_setup() -> CrossContractSetup {
     let xlm_admin = StellarAssetClient::new(&env, &xlm_sac_id);
     let xlm = TokenClient::new(&env, &xlm_sac_id);
 
-    let token_id = env.register(PULSETokenContract, ());
-    let token = pulse_token::PULSETokenContractClient::new(&env, &token_id);
+    let token_id = env.register(StellarTradeTokenContract, ());
+    let token = stellar_trade_token::StellarTradeTokenContractClient::new(&env, &token_id);
     token.initialize(
         &admin,
-        &String::from_str(&env, "PULSE"),
-        &String::from_str(&env, "PLSE"),
+        &String::from_str(&env, "Stellar Trade"),
+        &String::from_str(&env, "STRD"),
         &7u32,
     );
 
@@ -85,7 +85,7 @@ fn cross_setup() -> CrossContractSetup {
     leaderboard.initialize(&admin, &market_id, &referral_id);
     referral.initialize(&admin, &market_id, &token_id, &leaderboard_id, &xlm_sac_id);
 
-    leaderboard.set_token_contract(&admin, &token_id, &pulse_token::INTERFACE_VERSION);
+    leaderboard.set_token_contract(&admin, &token_id, &stellar_trade_token::INTERFACE_VERSION);
     token.set_minter(&leaderboard_id);
     token.set_minter(&market_id);
     token.set_minter(&referral_id);
@@ -237,12 +237,12 @@ fn test_inv_cross_late_referrer_registration() {
     assert_eq!(t.xlm.balance(&referrer), referrer_balance_before + 5000000);
 }
 
-/// Invariant 4: PULSE minting bounded by constants
-/// Tests that total PULSE minted matches WIN_TOKENS after a full market
-/// lifecycle (cross-contract: prediction_market -> leaderboard -> pulse_token).
+/// Invariant 4: STRD minting bounded by constants
+/// Tests that total STRD minted matches WIN_TOKENS after a full market
+/// lifecycle (cross-contract: prediction_market -> leaderboard -> stellar_trade_token).
 /// A loss no longer mints a LOSE_TOKENS consolation prize (issue #24).
 #[test]
-fn test_inv_cross_pulse_minting_bounded() {
+fn test_inv_cross_reward_asset_minting_bounded() {
     let t = cross_setup();
     let market_id = create_market(&t.market, &t.admin);
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-`transfer` (`pulse_token/src/lib.rs`, lines ~116–133) and `burn` (lines ~135–156) update `Balance` keys in **persistent storage** but **never call `extend_ttl`**:
+`transfer` (`stellar_trade_token/src/lib.rs`, lines ~116–133) and `burn` (lines ~135–156) update `Balance` keys in **persistent storage** but **never call `extend_ttl`**:
 
 ```rust
 env.storage().persistent().set(&DataKey::Balance(from), &(from_balance - amount));
@@ -10,7 +10,7 @@ env.storage().persistent().set(&DataKey::Balance(to), &(to_balance + amount));
 // no extend_ttl
 ```
 
-If a user holds PULSE but is inactive for the TTL period, their `Balance` key **expires and is deleted** — their tokens are **permanently lost** (the `TotalSupply` is not decremented, so the supply and the sum of balances diverge). This is a critical data-integrity issue for a token contract.
+If a user holds legacy reward asset but is inactive for the TTL period, their `Balance` key **expires and is deleted** — their tokens are **permanently lost** (the `TotalSupply` is not decremented, so the supply and the sum of balances diverge). This is a critical data-integrity issue for a token contract.
 
 ## Why it's unsolvable by a localized patch
 

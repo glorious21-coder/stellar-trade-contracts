@@ -1,12 +1,12 @@
-# [MEDIUM] PULSE token has no approve/allowance mechanism — cannot integrate with DeFi or delegated spending
+# [MEDIUM] legacy reward asset token has no approve/allowance mechanism — cannot integrate with DeFi or delegated spending
 
 ## Summary
 
-The PULSE token (`pulse_token/src/lib.rs`) implements only `transfer`, `burn`, and `mint`. There is **no `approve`/`allowance`/`transfer_from`** mechanism. This means:
+The legacy reward asset token (`stellar_trade_token/src/lib.rs`) implements only `transfer`, `burn`, and `mint`. There is **no `approve`/`allowance`/`transfer_from`** mechanism. This means:
 
-- No third-party contract can spend PULSE on a user's behalf (no delegated transfers).
+- No third-party contract can spend legacy reward asset on a user's behalf (no delegated transfers).
 - The token cannot integrate with standard DeFi primitives (DEXs, lending, staking) that require allowances.
-- Users must transfer PULSE directly, which is incompatible with most on-chain applications.
+- Users must transfer legacy reward asset directly, which is incompatible with most on-chain applications.
 
 This is a **functional limitation** that makes the token non-composable with the broader Stellar/Soroban ecosystem.
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-`set_minter` (`pulse_token/src/lib.rs`, lines ~70–77) and `remove_minter` (lines ~79–86) are admin-only, but:
+`set_minter` (`stellar_trade_token/src/lib.rs`, lines ~70–77) and `remove_minter` (lines ~79–86) are admin-only, but:
 
 - `set_minter` doesn't check if the minter is **already** authorized — calling it twice is a no-op that still costs gas.
 - `remove_minter` doesn't check if the minter **was** authorized — removing a non-minter is a silent no-op.

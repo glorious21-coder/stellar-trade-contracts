@@ -1,8 +1,8 @@
-# [CRITICAL] PULSE token has no supply cap — unbounded inflation via rewards and referrals
+# [CRITICAL] legacy reward asset token has no supply cap — unbounded inflation via rewards and referrals
 
 ## Summary
 
-`mint` (`pulse_token/src/lib.rs`, lines ~88–114) has **no supply ceiling**:
+`mint` (`stellar_trade_token/src/lib.rs`, lines ~88–114) has **no supply ceiling**:
 
 ```rust
 pub fn mint(env: Env, minter: Address, to: Address, amount: i128) -> Result<(), TokenError> {
@@ -12,11 +12,11 @@ pub fn mint(env: Env, minter: Address, to: Address, amount: i128) -> Result<(), 
 }
 ```
 
-Every `claim` mints `WIN_TOKENS` (10 PULSE) or `LOSE_TOKENS` (2 PULSE) per participant (`leaderboard::reward`), and every `register_referral` mints `WELCOME_BONUS_TOKENS` (1 PULSE) (`leaderboard::reward_bonus`). With no cap, `total_supply` grows **without bound**. This:
+Every `claim` mints `WIN_TOKENS` (10 legacy reward asset) or `LOSE_TOKENS` (2 legacy reward asset) per participant (`leaderboard::reward`), and every `register_referral` mints `WELCOME_BONUS_TOKENS` (1 legacy reward asset) (`leaderboard::reward_bonus`). With no cap, `total_supply` grows **without bound**. This:
 
 - Dilutes all existing holders indefinitely.
 - Makes the token's value unpredictable and non-scarce.
-- Combined with the sybil vector (issue #29), lets an attacker mint unlimited PULSE by creating endless referral chains and claiming rewards.
+- Combined with the sybil vector (issue #29), lets an attacker mint unlimited legacy reward asset by creating endless referral chains and claiming rewards.
 
 ## Why it's unsolvable by a localized patch
 

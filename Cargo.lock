@@ -314,9 +314,9 @@ version = "0.1.0"
 dependencies = [
  "leaderboard",
  "prediction_market",
- "pulse_token",
  "referral_registry",
  "soroban-sdk",
+ "stellar_trade_token",
 ]
 
 [[package]]
@@ -842,8 +842,8 @@ dependencies = [
 name = "leaderboard"
 version = "0.1.0"
 dependencies = [
- "pulse_token",
  "soroban-sdk",
+ "stellar_trade_token",
 ]
 
 [[package]]
@@ -976,9 +976,9 @@ name = "prediction_market"
 version = "0.1.0"
 dependencies = [
  "leaderboard",
- "pulse_token",
  "referral_registry",
  "soroban-sdk",
+ "stellar_trade_token",
 ]
 
 [[package]]
@@ -1007,13 +1007,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "pulse_token"
-version = "0.1.0"
-dependencies = [
- "soroban-sdk",
 ]
 
 [[package]]
@@ -1060,8 +1053,8 @@ name = "referral_registry"
 version = "0.1.0"
 dependencies = [
  "leaderboard",
- "pulse_token",
  "soroban-sdk",
+ "stellar_trade_token",
 ]
 
 [[package]]
@@ -1489,6 +1482,13 @@ dependencies = [
  "serde_with",
  "sha2",
  "stellar-strkey 0.0.13",
+]
+
+[[package]]
+name = "stellar_trade_token"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
 ]
 
 [[package]]

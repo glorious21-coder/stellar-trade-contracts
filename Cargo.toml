@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "prediction_market",
-    "pulse_token",
+    "stellar_trade_token",
     "referral_registry",
     "leaderboard",
     "cross_contract_invariants",

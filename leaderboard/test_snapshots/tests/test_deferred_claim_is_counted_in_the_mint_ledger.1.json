@@ -45,10 +45,10 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
                 },
                 {
-                  "string": "PULSE"
+                  "string": "Stellar Trade"
                 },
                 {
-                  "string": "PLSE"
+                  "string": "STRD"
                 },
                 {
                   "u32": 7
@@ -707,7 +707,7 @@
                         ]
                       },
                       "val": {
-                        "string": "PULSE"
+                        "string": "Stellar Trade"
                       }
                     },
                     {
@@ -719,7 +719,7 @@
                         ]
                       },
                       "val": {
-                        "string": "PLSE"
+                        "string": "STRD"
                       }
                     },
                     {

@@ -1184,7 +1184,7 @@ impl PredictionMarketContract {
         if fully_closed {
             // A fully-reduced position is removed entirely: no payout entry is
             // created for it at resolution, and claim() reports NoBetFound
-            // (no free PULSE/points for an empty position).
+            // (no free STRD/points for an empty position).
             env.storage().persistent().remove(&bet_key);
         } else {
             env.storage().persistent().set(&bet_key, &entry);
@@ -1666,7 +1666,7 @@ impl PredictionMarketContract {
 
         // Immediate reward settlement (issue #139): add_pts is deprecated in
         // favor of reward(), which credits points/win-loss and mints the
-        // PULSE reward in one cross-contract hop.
+        // STRD reward in one cross-contract hop.
         Self::require_compatible_leaderboard(&env, &cfg.leaderboard)?;
         if real_win {
             let _: Val = env.invoke_contract(

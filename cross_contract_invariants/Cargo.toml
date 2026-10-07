@@ -8,7 +8,7 @@ publish = false
 testutils = [
     "soroban-sdk/testutils",
     "prediction_market/testutils",
-    "pulse_token/testutils",
+    "stellar_trade_token/testutils",
     "referral_registry/testutils",
     "leaderboard/testutils",
 ]
@@ -16,13 +16,13 @@ testutils = [
 [dependencies]
 soroban-sdk = { workspace = true }
 prediction_market = { path = "../prediction_market" }
-pulse_token = { path = "../pulse_token" }
+stellar_trade_token = { path = "../stellar_trade_token" }
 referral_registry = { path = "../referral_registry" }
 leaderboard = { path = "../leaderboard" }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
 prediction_market = { path = "../prediction_market", features = ["testutils"] }
-pulse_token = { path = "../pulse_token", features = ["testutils"] }
+stellar_trade_token = { path = "../stellar_trade_token", features = ["testutils"] }
 referral_registry = { path = "../referral_registry", features = ["testutils"] }
 leaderboard = { path = "../leaderboard", features = ["testutils"] }

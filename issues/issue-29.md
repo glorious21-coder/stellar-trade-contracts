@@ -13,7 +13,7 @@ Combined with the welcome bonus (`WELCOME_BONUS_TOKENS` + `WELCOME_BONUS_POINTS`
 1. Create a chain of N self-controlled addresses.
 2. Each registers the previous as referrer, minting `WELCOME_BONUS_TOKENS` each time.
 3. Each bets, paying referral fees up the chain to the attacker's addresses.
-4. The attacker farms unlimited PULSE and referral fees with no sybil resistance.
+4. The attacker farms unlimited legacy reward asset and referral fees with no sybil resistance.
 
 ## Why it's unsolvable by a localized patch
 

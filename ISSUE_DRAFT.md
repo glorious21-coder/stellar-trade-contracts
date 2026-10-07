@@ -1,5 +1,7 @@
 # [CRITICAL] Systemic accounting & state-invariant violation across prediction_market ↔ referral_registry ↔ leaderboard — fee theft, leaderboard displacement, and unbounded inflation
 
+> **Historical draft, not a current security assessment.** This unsubmitted report describes an earlier implementation snapshot. The contracts have since changed; several snippets and claims below no longer match the current source. Do not use this draft to judge current contract behavior. Re-audit the current code and tests before reporting findings.
+
 ## Summary
 
 This is not a single bug but a **family of interacting state-invariant violations** that, taken together, allow an attacker (or even a sequence of ordinary users) to:
@@ -7,7 +9,7 @@ This is not a single bug but a **family of interacting state-invariant violation
 1. **Steal platform fees** from `AccumulatedFees` on cancelled markets (the `cancel_market` reclaim math is inconsistent with what is actually held).
 2. **Displace a high-points player from the top-50 leaderboard with a lower-points player** (the `MinPoints`/`MinSlot` cache in `upsert_top` goes stale and is never recomputed in the partial-list regime).
 3. **Permanently divert referral fees away from a referrer** (the `HasReferrer` cache is never invalidated, so a user who registers a referrer *after* their first bet never pays them).
-4. **Mint PULSE without any supply cap** (every `claim` mints `WIN_TOKENS`/`LOSE_TOKENS` with no ceiling, and `reward`/`reward_bonus` are callable by two different trusted callers with divergent accounting).
+4. **Mint legacy reward asset without any supply cap** (every `claim` mints `WIN_TOKENS`/`LOSE_TOKENS` with no ceiling, and `reward`/`reward_bonus` are callable by two different trusted callers with divergent accounting).
 
 Each individual defect is subtle; the *combination* is what makes this effectively unsolvable without a coordinated redesign of the storage model, the fee lifecycle, and the cross-contract trust boundaries.
 
@@ -121,11 +123,11 @@ The referrer in step 3 is an **arbitrary user-supplied address** (from `register
 
 ---
 
-## 5. Unbounded PULSE minting (no supply cap)
+## 5. Unbounded legacy reward asset minting (no supply cap)
 
-**File:** `pulse_token/src/lib.rs` `mint` (lines ~88–114) and `leaderboard/src/lib.rs` `reward`/`reward_bonus` (lines ~152–288)
+**File:** `stellar_trade_token/src/lib.rs` `mint` (lines ~88–114) and `leaderboard/src/lib.rs` `reward`/`reward_bonus` (lines ~152–288)
 
-`mint` has **no supply ceiling**. Every `claim` mints `WIN_TOKENS` (10 PULSE) or `LOSE_TOKENS` (2 PULSE) per participant, and every `register_referral` mints `WELCOME_BONUS_TOKENS` (1 PULSE). With no cap, `total_supply` grows without bound. Additionally, `reward` (market-trusted) and `reward_bonus` (referral-trusted) are two independent minting entry points with **different** accounting semantics (`reward` increments `won_bets`/`lost_bets`; `reward_bonus` does not) — so the same user can be rewarded through both paths with no reconciliation, and `total_bets` (derived as `won + lost`) silently undercounts bonus-only activity.
+`mint` has **no supply ceiling**. Every `claim` mints `WIN_TOKENS` (10 legacy reward asset) or `LOSE_TOKENS` (2 legacy reward asset) per participant, and every `register_referral` mints `WELCOME_BONUS_TOKENS` (1 legacy reward asset). With no cap, `total_supply` grows without bound. Additionally, `reward` (market-trusted) and `reward_bonus` (referral-trusted) are two independent minting entry points with **different** accounting semantics (`reward` increments `won_bets`/`lost_bets`; `reward_bonus` does not) — so the same user can be rewarded through both paths with no reconciliation, and `total_bets` (derived as `won + lost`) silently undercounts bonus-only activity.
 
 **Why it's hard:** Adding a cap requires deciding who enforces it (token vs. leaderboard), migrating the mint authority model, and reconciling the two reward paths — all while preserving the existing ABI and deployed storage.
 

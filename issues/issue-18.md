@@ -4,7 +4,7 @@
 
 The leaderboard exposes **two** point-adding functions, both gated by `require_market_contract`:
 
-- `reward` (`leaderboard/src/lib.rs`, lines ~152–205): adds points, increments `won_bets`/`lost_bets`, **and mints PULSE**.
+- `reward` (`leaderboard/src/lib.rs`, lines ~152–205): adds points, increments `won_bets`/`lost_bets`, **and mints legacy reward asset**.
 - `add_pts` (lines ~208–241): adds points, increments `won_bets`/`lost_bets`, but does **not** mint.
 
 The market contract currently calls `reward` (in `claim`, line ~665). But because `add_pts` is also authorized for the market, **any future or buggy call path** that uses `add_pts` instead of `reward` silently skips token minting — the same user action produces different token supply depending on which function is called. There is no invariant enforcing that `reward` is the only minting path, and no reconciliation between the two.

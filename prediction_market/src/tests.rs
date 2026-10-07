@@ -7,8 +7,8 @@ use soroban_sdk::{
 };
 
 use leaderboard::LeaderboardContract;
-use pulse_token::PULSETokenContract;
 use referral_registry::ReferralRegistryContract;
+use stellar_trade_token::StellarTradeTokenContract;
 
 // ── Test Infrastructure ───────────────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ struct TestSetup {
     xlm_sac_id: Address,
     xlm_admin: StellarAssetClient<'static>,
     xlm: TokenClient<'static>,
-    token_client: pulse_token::PULSETokenContractClient<'static>,
+    token_client: stellar_trade_token::StellarTradeTokenContractClient<'static>,
     leaderboard_client: leaderboard::LeaderboardContractClient<'static>,
     referral_client: referral_registry::ReferralRegistryContractClient<'static>,
 }
@@ -48,12 +48,12 @@ fn setup() -> TestSetup {
     let xlm_admin = StellarAssetClient::new(&env, &xlm_sac_id);
     let xlm = TokenClient::new(&env, &xlm_sac_id);
 
-    let token_id = env.register(PULSETokenContract, ());
-    let token_client = pulse_token::PULSETokenContractClient::new(&env, &token_id);
+    let token_id = env.register(StellarTradeTokenContract, ());
+    let token_client = stellar_trade_token::StellarTradeTokenContractClient::new(&env, &token_id);
     token_client.initialize(
         &admin,
-        &String::from_str(&env, "PULSE"),
-        &String::from_str(&env, "PLSE"),
+        &String::from_str(&env, "Stellar Trade"),
+        &String::from_str(&env, "STRD"),
         &7u32,
     );
 
@@ -77,10 +77,14 @@ fn setup() -> TestSetup {
     leaderboard_client.initialize(&admin, &market_id, &referral_id);
     referral_client.initialize(&admin, &market_id, &token_id, &leaderboard_id, &xlm_sac_id);
 
-    // Lever G: the leaderboard now mints PULSE internally (one cross-call from
+    // Lever G: the leaderboard now mints STRD internally (one cross-call from
     // market/referral instead of two). It must know the token AND be authorized
     // as a minter. This mirrors the exact mainnet upgrade sequence.
-    leaderboard_client.set_token_contract(&admin, &token_id, &pulse_token::INTERFACE_VERSION);
+    leaderboard_client.set_token_contract(
+        &admin,
+        &token_id,
+        &stellar_trade_token::INTERFACE_VERSION,
+    );
     token_client.set_minter(&leaderboard_id);
     // Legacy minter auths kept harmless (market/referral no longer mint directly).
     token_client.set_minter(&market_id);
@@ -478,7 +482,7 @@ fn test_reduce_position_with_referrer_paid() {
     assert_eq!(t.client.get_market(&id).total_yes, 58_8000000);
 }
 
-// ── 98c. Full close deletes the position: no entry, no claim, no free PULSE ──
+// ── 98c. Full close deletes the position: no entry, no claim, no free STRD ──
 #[test]
 fn test_reduce_position_full_close_deletes_position() {
     let t = setup();
@@ -1963,7 +1967,7 @@ fn test_e2e_full_inter_contract_flow() {
     // Welcome bonus is queued; flush before reading the leaderboard.
     t.leaderboard_client.claim_pending_rewards(&alice_user);
     assert_eq!(t.leaderboard_client.get_points(&alice_user), 5);
-    // Welcome-bonus PULSE is minted immediately by reward_bonus (Lever G).
+    // Welcome-bonus STRD is minted immediately by reward_bonus (Lever G).
     assert_eq!(t.token_client.balance(&alice_user), 1_0000000);
 
     let market_id = t.client.create_market(
@@ -2020,7 +2024,7 @@ fn test_e2e_full_inter_contract_flow() {
     t.client.resolve_market(&resolver, &market_id, &true);
     assert!(t.client.get_market(&market_id).resolved);
 
-    // Alice claims as winner. The XLM payout lands immediately; the PULSE
+    // Alice claims as winner. The XLM payout lands immediately; the STRD
     // reward is queued and minted when she claims her pending rewards.
     let alice_xlm_before = t.xlm.balance(&alice_user);
     t.client.claim(&alice_user, &market_id);
@@ -2954,7 +2958,7 @@ fn test_set_config_is_timelocked() {
     let t = setup();
     // A real contract deployment must be staged: set_config validates that
     // every dependency is the expected executable kind (issue #51/#6).
-    let new_token = t.env.register(PULSETokenContract, ());
+    let new_token = t.env.register(StellarTradeTokenContract, ());
     let new_referral = t.env.register(ReferralRegistryContract, ());
     let new_leaderboard = second_leaderboard(&t);
     let new_xlm = t.xlm_sac_id;
@@ -4245,10 +4249,10 @@ fn test_inv_withdraw_cap_after_cancel() {
     assert_eq!(remaining, fees - cap);
 }
 
-/// Invariant 4: Total PULSE minted equals sum of all reward() token amounts.
+/// Invariant 4: Total STRD minted equals sum of all reward() token amounts.
 /// The leaderboard mints tokens on claim; total supply must track exactly.
 #[test]
-fn test_inv_pulse_supply_tracks_rewards() {
+fn test_inv_reward_asset_supply_tracks_rewards() {
     let t = setup();
     let id = create_test_market(&t);
     let alice = Address::generate(&t.env);

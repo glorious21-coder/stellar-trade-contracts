@@ -7,9 +7,9 @@ Every contract exposes an `upgrade(admin, new_wasm_hash)` that calls `env.deploy
 - `prediction_market/src/lib.rs` line ~184
 - `leaderboard/src/lib.rs` line ~116
 - `referral_registry/src/lib.rs` line ~98
-- `pulse_token/src/lib.rs` line ~66
+- `stellar_trade_token/src/lib.rs` line ~66
 
-A single compromised admin key (or a malicious admin) can atomically replace any contract's bytecode with arbitrary logic — e.g., a version that drains all XLM, mints unlimited PULSE, or rewrites `AccumulatedFees` — in **one transaction**, with **no warning to users** and **no way to revert**.
+A single compromised admin key (or a malicious admin) can atomically replace any contract's bytecode with arbitrary logic — e.g., a version that drains all XLM, mints unlimited legacy reward asset, or rewrites `AccumulatedFees` — in **one transaction**, with **no warning to users** and **no way to revert**.
 
 ## Why it's unsolvable by a localized patch
 

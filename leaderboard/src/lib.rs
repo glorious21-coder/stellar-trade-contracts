@@ -38,7 +38,7 @@ const DECAY_ZERO_AFTER_PERIODS: u32 = TTL_HIGH / DECAY_PERIOD_LEDGERS;
 // type that a caller relies on changes.
 pub const INTERFACE_VERSION: u32 = 1;
 // Issue #170: expected token ABI version now stored in instance storage.
-// The governor updates it via set_token_contract when upgrading pulse_token.
+// The governor updates it via set_token_contract when upgrading stellar_trade_token.
 const DEFAULT_TOKEN_INTERFACE_VERSION: u32 = 1;
 
 #[contracterror]
@@ -86,7 +86,7 @@ pub enum DataKey {
     // Issue #20: permanently flagged addresses. Every accrual path checks this
     // key and returns PlayerBanned if present.
     BannedPlayer(Address),
-    // Issue #18: cumulative PULSE this contract has minted to an address.
+    // Issue #18: cumulative STRD this contract has minted to an address.
     // Written only by mint_reward, the single minting chokepoint, so the sum
     // over all players is exactly what the leaderboard put into circulation.
     MintedTo(Address),
@@ -199,7 +199,7 @@ impl LeaderboardContract {
         Ok(())
     }
 
-    /// Set the PULSE token contract used by reward()/reward_bonus() for
+    /// Set the STRD token contract used by reward()/reward_bonus() for
     /// internal minting. Admin only. `set_token` is the pre-#23 alias.
     pub fn set_token(env: Env, admin: Address, token: Address) -> Result<(), LeaderboardError> {
         Self::write_token_contract(&env, &admin, &token, DEFAULT_TOKEN_INTERFACE_VERSION)
@@ -272,7 +272,7 @@ impl LeaderboardContract {
     // ── Bet-settlement path ───────────────────────────────────────────────────
 
     /// Called by the market contract after a bet is settled. Credits points,
-    /// updates win/loss counts, and optionally mints PULSE tokens. Replaces
+    /// updates win/loss counts, and optionally mints STRD tokens. Replaces
     /// the old two-call pattern (add_pts + separate mint).
     ///
     /// A banned player is rejected with `PlayerBanned` (#10) before any state
@@ -447,7 +447,7 @@ impl LeaderboardContract {
 
     /// Called by the referral contract for welcome / per-bet referral bonuses.
     /// Increments bonus_bets (not won/lost) so derived total_bets stays
-    /// accurate. Optionally mints PULSE. A banned player is rejected with
+    /// accurate. Optionally mints STRD. A banned player is rejected with
     /// `PlayerBanned` (#10).
     pub fn reward_bonus(
         env: Env,
@@ -901,13 +901,13 @@ impl LeaderboardContract {
         Ok(())
     }
 
-    // Issue #84: check pulse_token's reported ABI version before invoking mint.
+    // Issue #84: check stellar_trade_token's reported ABI version before invoking mint.
     fn require_compatible_token(env: &Env, token: &Address) -> Result<(), LeaderboardError> {
         let version: u32 =
             env.invoke_contract(token, &Symbol::new(env, "interface_version"), vec![&env]);
         // Issue #170: read expected version from instance storage instead of
         // a compile-time constant, so the governor can update it when upgrading
-        // pulse_token.
+        // stellar_trade_token.
         let expected: u32 = env
             .storage()
             .instance()
@@ -1046,7 +1046,7 @@ impl LeaderboardContract {
         Ok(())
     }
 
-    /// Cumulative PULSE this contract has minted to `user`.
+    /// Cumulative STRD this contract has minted to `user`.
     ///
     /// Issue #18 asked for a reconciliation between the point-recording paths
     /// and the minting ones. This is it: whatever entry point ran, the mint is

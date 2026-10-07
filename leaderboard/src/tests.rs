@@ -1536,12 +1536,12 @@ fn test_full_board_reorder_stays_within_default_write_limits() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Issue #79 — reward paths enforce PULSE supply cap
+// Issue #79 — reward paths enforce STRD supply cap
 // ═══════════════════════════════════════════════════════════════════════════
 
-use pulse_token::{PULSETokenContract, PULSETokenContractClient};
+use stellar_trade_token::{StellarTradeTokenContract, StellarTradeTokenContractClient};
 
-/// Helper: deploy a fresh PULSE token, set supply cap, wire it into the
+/// Helper: deploy a fresh STRD token, set supply cap, wire it into the
 /// leaderboard, and return all necessary handles.
 fn setup_with_token() -> (
     Env,
@@ -1549,7 +1549,7 @@ fn setup_with_token() -> (
     Address, // admin
     Address, // market
     Address, // referral
-    PULSETokenContractClient<'static>,
+    StellarTradeTokenContractClient<'static>,
 ) {
     let env = Env::default();
     env.mock_all_auths();
@@ -1564,21 +1564,21 @@ fn setup_with_token() -> (
     let referral = Address::generate(&env);
     client.initialize(&admin, &market, &referral);
 
-    // Deploy PULSE token
-    let token_id = env.register(PULSETokenContract, ());
-    let token_client = PULSETokenContractClient::new(&env, &token_id);
+    // Deploy STRD token
+    let token_id = env.register(StellarTradeTokenContract, ());
+    let token_client = StellarTradeTokenContractClient::new(&env, &token_id);
     token_client.initialize(
         &admin,
-        &soroban_sdk::String::from_str(&env, "PULSE"),
-        &soroban_sdk::String::from_str(&env, "PLSE"),
+        &soroban_sdk::String::from_str(&env, "Stellar Trade"),
+        &soroban_sdk::String::from_str(&env, "STRD"),
         &7u32,
     );
 
     // Wire token into leaderboard, and authorize the leaderboard contract to
-    // mint PULSE — reward()/reward_bonus() call token_client.mint() with the
-    // leaderboard contract as the minter, which pulse_token rejects unless
+    // mint STRD — reward()/reward_bonus() call token_client.mint() with the
+    // leaderboard contract as the minter, which stellar_trade_token rejects unless
     // it's on the authorized-minter list.
-    client.set_token_contract(&admin, &token_id, &pulse_token::INTERFACE_VERSION);
+    client.set_token_contract(&admin, &token_id, &stellar_trade_token::INTERFACE_VERSION);
     token_client.set_minter(&contract_id);
 
     (env, client, admin, market, referral, token_client)
@@ -1592,7 +1592,7 @@ fn test_reward_mints_tokens() {
     // Verify token balance starts at 0
     assert_eq!(token_client.balance(&user), 0);
 
-    // reward() with 10 PULSE — token contract must be invoked
+    // reward() with 10 STRD — token contract must be invoked
     client.reward(&market, &user, &30_u64, &10_0000000_i128, &true);
 
     // Points updated AND token balance changed — proves mint was invoked
@@ -1606,7 +1606,7 @@ fn test_reward_updates_points_and_mints_tokens() {
     let (env, client, _admin, market, _referral, token_client) = setup_with_token();
     let user = Address::generate(&env);
 
-    // Two reward calls: 30 pts + 10 PULSE, then 10 pts + 5 PULSE
+    // Two reward calls: 30 pts + 10 STRD, then 10 pts + 5 STRD
     client.reward(&market, &user, &30_u64, &10_0000000_i128, &true);
     client.reward(&market, &user, &10_u64, &5_0000000_i128, &false);
 
@@ -1621,10 +1621,10 @@ fn test_reward_enforces_supply_cap() {
     let (env, client, admin, market, _referral, token_client) = setup_with_token();
     let user = Address::generate(&env);
 
-    // Set cap to 5 PULSE
+    // Set cap to 5 STRD
     token_client.set_supply_cap(&admin, &5_0000000_i128);
 
-    // Mint 5 PULSE — should succeed
+    // Mint 5 STRD — should succeed
     client.reward(&market, &user, &30_u64, &5_0000000_i128, &true);
     assert_eq!(token_client.balance(&user), 5_0000000_i128);
     assert_eq!(token_client.total_supply(), 5_0000000_i128);
@@ -1647,7 +1647,7 @@ fn test_reward_bonus_mints_tokens() {
 
     assert_eq!(token_client.balance(&user), 0);
 
-    // reward_bonus() with 8 PULSE
+    // reward_bonus() with 8 STRD
     client.reward_bonus(&referral, &user, &5_u64, &8_0000000_i128);
 
     assert_eq!(client.get_points(&user), 5);
@@ -1660,10 +1660,10 @@ fn test_reward_bonus_enforces_supply_cap() {
     let (env, client, admin, _market, referral, token_client) = setup_with_token();
     let user = Address::generate(&env);
 
-    // Set cap to 3 PULSE
+    // Set cap to 3 STRD
     token_client.set_supply_cap(&admin, &3_0000000_i128);
 
-    // Mint 3 PULSE via reward_bonus — should succeed
+    // Mint 3 STRD via reward_bonus — should succeed
     client.reward_bonus(&referral, &user, &5_u64, &3_0000000_i128);
     assert_eq!(token_client.balance(&user), 3_0000000_i128);
 
@@ -1681,10 +1681,10 @@ fn test_claim_pending_preserves_reward_on_cap_exceeded() {
     let (env, client, admin, market, _referral, token_client) = setup_with_token();
     let user = Address::generate(&env);
 
-    // Set cap to 2 PULSE
+    // Set cap to 2 STRD
     token_client.set_supply_cap(&admin, &2_0000000_i128);
 
-    // Queue a reward for 3 PULSE — queue itself doesn't mint
+    // Queue a reward for 3 STRD — queue itself doesn't mint
     client.queue_reward(&market, &user, &30_u64, &3_0000000_i128, &true);
     assert_eq!(token_client.balance(&user), 0);
 
@@ -1709,7 +1709,7 @@ fn test_claim_pending_succeeds_after_cap_raised() {
     let (env, client, admin, market, _referral, token_client) = setup_with_token();
     let user = Address::generate(&env);
 
-    // Set cap to 2 PULSE, queue 3 PULSE
+    // Set cap to 2 STRD, queue 3 STRD
     token_client.set_supply_cap(&admin, &2_0000000_i128);
     client.queue_reward(&market, &user, &30_u64, &3_0000000_i128, &true);
 
@@ -1718,7 +1718,7 @@ fn test_claim_pending_succeeds_after_cap_raised() {
     assert_eq!(token_client.balance(&user), 0);
     assert!(client.get_pending_reward(&user).is_some());
 
-    // Raise cap to 5 PULSE
+    // Raise cap to 5 STRD
     token_client.set_supply_cap(&admin, &5_0000000_i128);
 
     // Claim succeeds now
@@ -1822,7 +1822,7 @@ fn test_add_pts_records_a_bet_and_mints_nothing() {
 #[test]
 fn test_minted_ledger_reconciles_with_token_supply_across_every_path() {
     // The invariant the issue asks for. Exercise every way this contract can
-    // put PULSE into circulation — the immediate market path, the immediate
+    // put STRD into circulation — the immediate market path, the immediate
     // referral path, the deferred queue/claim path, and the two non-minting
     // legacy entry points — then check the contract's own tally against what
     // the token actually issued.
@@ -1850,7 +1850,7 @@ fn test_minted_ledger_reconciles_with_token_supply_across_every_path() {
     assert_eq!(
         tallied,
         token_client.total_supply(),
-        "the leaderboard's mint tally must account for every PULSE it issued"
+        "the leaderboard's mint tally must account for every STRD it issued"
     );
     // And it agrees per-player with the token's own books.
     for who in [&a, &b, &c, &d] {
